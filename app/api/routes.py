@@ -4,6 +4,7 @@ from fastapi import APIRouter, UploadFile, File
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_chroma import Chroma
 from app.rag.chunking import ingest_document
+from app.rag.evaluate import evaluate_rag
 from app.rag.reranker import rerank
 from app.rag.retriever import advanced_retrieval
 from langchain_ollama import OllamaLLM
@@ -66,4 +67,18 @@ async def ask_advanced(question: str):
         "answer": answer,
         "chunks_before_rerank": len(chunks),
         "chunks_after_rerank": len(reranked_chunks)
+    }
+
+@router.post("/evaluate")
+async def evaluate(question: str):
+    vectorstore = get_vectorstore()
+    chunks = advanced_retrieval(question, vectorstore)
+    reranked_chunks = rerank(question, chunks, top_k=3)
+    answer = generate_answer(question, reranked_chunks)
+    scores = evaluate_rag(question, answer, reranked_chunks)
+    
+    return {
+        "question": question,
+        "answer": answer,
+        "scores": scores
     }
