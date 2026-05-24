@@ -1,0 +1,352 @@
+YOUR PERSONALIZED AI ENGINEERING ROADMAP 2025
+
+Profile:
+Fresh Graduate Software Engineer
+Background: FastAPI · MLOps · Time Series ML
+Goal: Freelance + AI Job → Expert
+Time: 3-4 hours/day
+Stack: Python · Ollama · Mistral · ChromaDB · LangChain
+Niche: Finance AI (chosen for market demand + your background)
+Phase 1: Complete (rag_app + code_search built)
+
+Teaching Rules We Agreed On:
+
+Understand WHY before writing any code
+Build every concept, don't copy-paste
+Each week has a checklist — don't move until complete
+Every project goes on GitHub with proper README
+Finance niche throughout entire roadmap
+Portfolio grows with every single week
+You explain concepts back to me before moving on
+We debug and build together, not alone
+PHASE 2: Advanced RAG
+Duration: 6 Weeks
+Project: advanced-rag-finance
+
+Week 1 — Chunking Strategies & Query Transformation
+
+What You'll Understand:
+
+Why chunk size and strategy directly affects answer quality
+The semantic gap problem (why your current RAG misses answers)
+How to fix bad queries BEFORE hitting ChromaDB
+How to deduplicate and manage retrieved context
+Concepts:
+
+Chunking Strategies:
+Fixed size → simple but ignores meaning
+Recursive character splitting → respects natural boundaries
+Semantic chunking → splits by meaning change
+Document-aware → respects headers, tables, paragraphs
+Multi-Query Retrieval:
+One query = one angle = missed chunks
+Transform 1 query into 3-4 variations
+Cover more semantic ground
+Deduplicate results before sending to Mistral
+Context Management:
+Why local models like Mistral have limits
+How too many chunks hurts answer quality
+Hash-based deduplication
+Resources:
+
+Greg Kamradt - "Chunking Strategies" (YouTube)
+DeepLearning.AI - "Building and Evaluating Advanced RAG" (free course)
+Pinecone Chunking Guide (pinecone.io/learn)
+LangChain Text Splitters Docs
+RAGAS Docs (ragas.io)
+Project:
+Build advanced-rag-finance Week 1:
+
+Upload financial PDF (Tesla/Apple annual report)
+Implement 3 chunking strategies
+Implement Multi-Query Retrieval
+/ask endpoint (basic)
+/ask/advanced endpoint (multi-query)
+Compare both endpoints with same 5 questions
+Document findings in README
+Week 1 Checklist:
+
+Can explain WHY chunking strategy matters
+Can explain the semantic gap problem
+Can explain multi-query retrieval in plain English
+/upload endpoint works
+/ask basic works
+/ask/advanced works with multi-query
+README documents your comparison findings
+Week 2 — Retrieval Quality & Re-Ranking
+
+What You'll Understand:
+
+Why similarity search alone is not enough
+What re-ranking is and why it improves results
+Hybrid search: combining keyword + semantic search
+How to measure if your RAG actually works (RAGAS)
+Concepts:
+
+Re-Ranking:
+Similarity search ranks by vector distance
+Re-ranker uses a smarter model to re-order results
+Cross-encoder models vs bi-encoder models
+Why the top result is not always the best result
+Hybrid Search:
+Semantic search (what you have) → finds meaning
+Keyword search (BM25) → finds exact terms
+Combining both = better coverage
+Important for finance (exact numbers, ticker names)
+RAG Evaluation with RAGAS:
+Faithfulness: is the answer grounded in context?
+Answer Relevancy: does it actually answer the question?
+Context Recall: did we retrieve the right chunks?
+How to run RAGAS locally with Mistral
+Resources:
+
+"Re-ranking in RAG" - Cohere blog (free article)
+James Briggs - RAG evaluation YouTube
+RAGAS documentation (ragas.io)
+BM25 explanation - Pinecone blog
+Sentence Transformers cross-encoder docs (sbert.net)
+Project:
+Upgrade advanced-rag-finance:
+
+Add re-ranking step after retrieval
+Add BM25 hybrid search
+Integrate RAGAS evaluation
+/evaluate endpoint that scores your RAG
+Test on 10 financial questions
+Compare: basic vs multi-query vs multi-query + rerank
+Week 2 Checklist:
+
+Can explain difference between bi-encoder and cross-encoder
+Can explain why hybrid search helps finance documents
+RAGAS running and giving scores
+Re-ranking integrated into pipeline
+Can read and explain your RAGAS scores
+Week 3 — Advanced Indexing & Metadata Filtering
+
+What You'll Understand:
+
+How metadata makes retrieval smarter and faster
+Parent-child chunk relationships
+Hypothetical document embeddings (HyDE)
+How to structure a financial document for maximum retrieval
+Concepts:
+
+Metadata Filtering:
+Attach data to chunks: year, company, section, page
+Filter BEFORE similarity search
+Example: "only search 2023 documents"
+Dramatically reduces noise
+Parent-Child Chunking:
+Small chunks for precise retrieval
+Large chunks for full context to Mistral
+Best of both worlds
+HyDE (Hypothetical Document Embeddings):
+Ask Mistral to write a hypothetical answer first
+Embed THAT instead of the raw question
+Hypothetical answer is closer in vector space to actual answer chunks
+Resources:
+
+"Parent Document Retriever" - LangChain docs
+HyDE paper (original) - easy to read abstract
+LangChain metadata filtering docs
+Sam Witteveen - Advanced RAG YouTube
+Project:
+Upgrade advanced-rag-finance:
+
+Add metadata to chunks (company, year, section)
+Add metadata filtering to /ask/advanced
+Implement parent-child chunking
+Try HyDE on financial questions
+/ask/filtered endpoint with metadata params
+Example query: "What were Apple's risks in 2023?" → filters to Apple + 2023 before searching
+Week 3 Checklist:
+
+Can explain why metadata filtering matters
+Can explain parent-child chunking trade-off
+Can explain HyDE in plain English
+Metadata attached to all chunks correctly
+Filtered endpoint working
+Can demonstrate improvement over Week 1
+Week 4 — Memory & Conversation Management
+
+What You'll Understand:
+
+Why a simple list is a bad memory strategy
+Different types of memory and when to use each
+How to manage context window for local models
+Conversation-aware retrieval
+Concepts:
+
+Memory Types:
+Buffer memory → keeps everything (what you built before)
+Window memory → keeps last N messages only
+Summary memory → summarizes old conversation
+Entity memory → remembers key facts mentioned
+Context Window Management:
+Mistral 7B context window limits
+How long conversations break local models
+Token counting and budgeting
+Conversation-Aware Retrieval:
+"What about their revenue?" → who is "their"? → needs conversation context
+Rewriting queries using conversation history
+Maintaining topic continuity
+Resources:
+
+LangChain Memory docs
+"LLM Memory Types Explained" - YouTube
+Mistral context window documentation
+DeepLearning.AI - LangChain chat with data (free)
+Project:
+Upgrade advanced-rag-finance:
+
+Replace list memory with summary memory
+Add conversation-aware query rewriting
+Add token counter (show user how many tokens used)
+/chat endpoint (full conversation with memory)
+Test multi-turn conversation:
+Q1: "What was Tesla's revenue in 2023?"
+Q2: "How does that compare to 2022?" (needs memory)
+Q3: "What were the main reasons for that change?"
+Week 4 Checklist:
+
+Can explain 4 memory types and when to use each
+Can explain context window problem with local models
+Summary memory working correctly
+Multi-turn conversation working
+Old conversations don't pollute new ones
+Week 5 — Streamlit UI & Full Integration
+
+What You'll Understand:
+
+How to build a professional demo UI
+How to present RAG comparisons visually
+How to make your project look portfolio-ready
+How to connect FastAPI backend to Streamlit
+Concepts:
+
+Streamlit Basics for AI Apps:
+File upload components
+Chat interface (st.chat_message)
+Displaying retrieved chunks
+Comparing responses side by side
+Demo-Driven Development:
+What clients/employers want to SEE
+How to present technical work non-technically
+Showing before/after (basic vs advanced RAG)
+Resources:
+
+Streamlit documentation (streamlit.io)
+"Build a RAG app with Streamlit" - YouTube
+Streamlit chat elements docs
+Project:
+Build ui/streamlit_app.py:
+
+PDF upload panel
+Chat interface with memory
+"Method" selector: Basic vs Advanced
+Show retrieved chunks (expandable)
+Show RAGAS scores per answer
+Side-by-side comparison mode
+This is your DEMO for clients/employers
+Week 5 Checklist:
+
+Streamlit app runs and connects to FastAPI
+PDF upload works through UI
+Chat interface works with memory
+Retrieved chunks visible to user
+Comparison mode works
+Looks clean enough to show a client
+Week 6 — Testing, Evaluation & Portfolio Finalization
+
+What You'll Understand:
+
+How to write tests for RAG pipelines
+How to create a proper evaluation dataset
+How to write a README that sells your project
+How to present this as a portfolio piece
+Project:
+Finalize advanced-rag-finance:
+
+Write tests for all RAG components
+Create evaluation dataset (20 financial Q&A pairs)
+Run full RAGAS evaluation and document scores
+Write professional README with:
+Problem it solves
+Architecture diagram
+Techniques used and WHY
+Benchmark results (basic vs advanced)
+How to run locally
+Record a 2-minute demo video
+Push clean final version to GitHub
+Week 6 Checklist:
+
+All endpoints tested
+RAGAS scores documented
+README is professional and explains WHY not just HOW
+Demo video recorded
+Project ready to show clients/employers
+PHASE 3: LangGraph Agents
+Duration: 5 Weeks
+Builds on: Your Advanced RAG Finance project
+
+Week 7: Graph thinking & LangGraph basics
+Week 8: Tool use & function calling
+Week 9: Multi-agent systems
+Week 10: Agent memory & state management
+Week 11: Finance Agent (RAG + Agent combined)
+
+Note: Detailed week-by-week breakdown unlocked after Phase 2
+
+PHASE 4: n8n Automation
+Duration: 3 Weeks
+
+Week 12: n8n basics & workflow thinking
+Week 13: Connecting AI to real services
+Week 14: Automated finance monitoring pipeline
+
+PHASE 5: Agentic Systems
+Duration: 3 Weeks
+
+Week 15: Multi-agent orchestration
+Week 16: Autonomous pipelines
+Week 17: Error handling & reliability
+
+PHASE 6: Fine-Tuning
+Duration: 3 Weeks
+
+Why here and not earlier:
+By this point you will have:
+
+Hit real limitations of base models
+Known exactly WHAT behavior to change
+Built enough to know if fine-tuning is worth it
+A real use case to fine-tune FOR
+Week 18: When to fine-tune vs RAG (decision framework)
+Week 19: LoRA & QLoRA with local models
+Week 20: Fine-tuning Mistral for finance domain
+
+PHASE 7: Production AI
+Duration: 3 Weeks
+
+Week 21: Docker & deployment
+Week 22: Monitoring & observability
+Week 23: Cost optimization for local vs API models
+
+PHASE 8: Flagship Project
+Duration: 2 Weeks
+
+Week 24-25: Full Finance AI Assistant
+
+Advanced RAG on financial documents
+Agent that can search, calculate, compare
+Automated monitoring pipeline (n8n)
+Fine-tuned model for finance tone
+Production deployed
+Full portfolio presentation
+Portfolio Progression:
+
+After Phase 2: Finance RAG system (Advanced)
+After Phase 3: Finance AI Agent
+After Phase 4: Automated Finance Pipeline
+After Phase 6: Fine-tuned Finance Model
+After Phase 8: Complete Finance AI Platform → job/freelance ready
