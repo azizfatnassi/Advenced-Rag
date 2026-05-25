@@ -10,7 +10,8 @@ from app.rag.retriever import advanced_retrieval
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 router = APIRouter()
-
+import os
+#VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
 VECTORSTORE_DIR = "./app/vectorstore"
 UPLOAD_DIR = "./data"
 
@@ -37,14 +38,14 @@ def generate_answer(question:str, chunks:list):
     
 
 @router.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...),company: str = "unknown", year: str = "unknown"):
     # Save file to data/
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
     
     # Ingest it
-    ingest_document(file_path)
+    ingest_document(file_path,company=company,year=year)
     
     return {"message": f"{file.filename} uploaded and ingested successfully"}
 
@@ -81,4 +82,26 @@ async def evaluate(question: str):
         "question": question,
         "answer": answer,
         "scores": scores
+    }
+
+@router.post("/ask/filetred")
+async def ask_filtred(question:str,company:str=None,year:str=None):
+    vectorstore=get_vectorstore()
+
+    where_filter={}
+    if company and year :
+        where_filter= {"$and":[{"company":company},{"year":year}]}
+    elif company:
+        where_filter = {"company": company}
+    elif year:
+        where_filter = {"year": year}
+    chunks = advanced_retrieval(question, vectorstore, filters=where_filter if where_filter else None)
+    reranked_chunks = rerank(question, chunks, top_k=3)
+    answer = generate_answer(question, reranked_chunks)
+    
+    return {
+        "question": question,
+        "filters_applied": {"company": company, "year": year},
+        "answer": answer,
+        "chunks_found": len(chunks)
     }

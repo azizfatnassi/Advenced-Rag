@@ -6,7 +6,9 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings 
 from langchain_chroma import Chroma 
 
-VECTORSTORE_DIR = "./vectorstore"
+
+#VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
+VECTORSTORE_DIR = "./app/vectorstore"
 
 
 def load_file(file_path:str):
@@ -24,7 +26,7 @@ def load_file(file_path:str):
         raise ValueError(f"Unsupported file type: {ext}")
     return loader.load() 
 
-def ingest_document(file_path: str):
+def ingest_document(file_path: str , company: str = "unknown", year: str = "unknown"):
     
     documents= load_file(file_path)
 
@@ -35,7 +37,15 @@ def ingest_document(file_path: str):
     
     chunks= splitter.split_documents(documents)
 
+    
+
+    for chunk in chunks :
+        chunk.metadata["company"]=company
+        chunk.metadata["year"]=year
+        chunk.metadata["source"]=file_path
     print(f'split into {len(chunks)} chunks')
+    print(f'Metadata added: company= {company},year={year}')
+    print("Sample chunk metadata:", chunks[0].metadata)
 
     embedding_fn= OllamaEmbeddings(model="nomic-embed-text")
 
