@@ -9,6 +9,11 @@ from app.rag.reranker import rerank
 from app.rag.retriever import advanced_retrieval
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
+from app.rag.memory import get_chat_history_as_string, get_or_create_memory, clear_memory, save_to_memory
+
+
+
+
 router = APIRouter()
 import os
 #VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
@@ -20,11 +25,17 @@ def get_vectorstore():
     return Chroma(persist_directory=VECTORSTORE_DIR, embedding_function=embedding_fn)
 
 
-def generate_answer(question:str, chunks:list):
+def generate_answer(question:str, chunks:list, chat_history: str ="")->str:
     context="\n\n".join([ c.page_content for c in chunks])
     llm = OllamaLLM(model="mistral")
-    prompt=ChatPromptTemplate.from_template("""""Use the following context to answer the question clearly and structured.
- If the answer is not in the context, say "I don't have enough information."
+    prompt=ChatPromptTemplate.from_template(
+        """""You are a helpful assistant. Use the context 
+             and conversation history to answer"
+
+
+ Conversation history:
+ {chat_history}  
+
 
  Context:
  {context}
@@ -34,7 +45,7 @@ def generate_answer(question:str, chunks:list):
  Answer:
  """)
     chain= prompt | llm
-    return chain.invoke({"context": context, "question": question})
+    return chain.invoke({"context": context, "question": question, "chat_history": chat_history})
     
 
 @router.post("/upload")
@@ -105,3 +116,35 @@ async def ask_filtred(question:str,company:str=None,year:str=None):
         "answer": answer,
         "chunks_found": len(chunks)
     }
+@router.post("/chat/memory")
+async def chat(question: str, session_id: str = "default"):
+    vectorstore = get_vectorstore()
+
+  
+    chat_history = get_chat_history_as_string(session_id)
+
+    chunks = advanced_retrieval(question, vectorstore)
+    reranked_chunks = rerank(question, chunks, top_k=3)
+    answer = generate_answer(question, reranked_chunks, chat_history=chat_history)
+
+   
+    save_to_memory(session_id, question, answer)
+
+    return {
+        "session_id": session_id,
+        "question": question,
+        "answer": answer,
+        "sources": [{
+            "content": c.page_content[:200],
+            "company": c.metadata.get("company","unknown"),
+            "year":c.metadata.get("year","unknown"),
+            "page":c.metadata.get("page","unknown")
+        }
+        for c in reranked_chunks
+        ]
+    }
+
+@router.delete("/chat/{session_id}")
+async def clear_chat(session_id: str):
+    cleared = clear_memory(session_id)
+    return {"cleared": cleared, "session_id": session_id}
