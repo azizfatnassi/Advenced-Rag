@@ -1,4 +1,5 @@
 from app.rag.hybrid_search import bm25_search
+from app.rag.hyde import hyde_answer
 from app.rag.multiquery import generate_queries
 
 def advanced_retrieval(question: str, vectordb, k: int = 5,filters: dict = None) -> list:
@@ -7,18 +8,33 @@ def advanced_retrieval(question: str, vectordb, k: int = 5,filters: dict = None)
     all_chunks = []
     seen_ids = set()
     
-    for query in queries:  # ✅ loop through each query
+    for query in queries:  
         if filters:
 
             results = vectordb.similarity_search(query, k=k, filter=filters)
         else :   
-            results = vectordb.similarity_search(query, k=k)  # ✅ one string at a time
+            results = vectordb.similarity_search(query, k=k)  
         
         for chunk in results:
-            chunk_id = hash(chunk.page_content)  # ✅ hash the text content
+            chunk_id = hash(chunk.page_content)  
             if chunk_id not in seen_ids:
                 seen_ids.add(chunk_id)
                 all_chunks.append(chunk)
+
+    #HYDE
+
+    hypothetical_answer=hyde_answer(question)
+
+    if filters :
+        hyde_results=vectordb.similarity_search(hypothetical_answer,k=k,filter=filters)
+    else:
+        hyde_results=vectordb.similarity_search(hypothetical_answer,k=k)
+
+    for chunk in hyde_results:
+        chunk_id=hash(chunk.page_content)
+        if chunk_id not in seen_ids:
+            all_chunks.append(chunk)
+
 
 
     # re-score and combine 

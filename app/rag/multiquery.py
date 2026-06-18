@@ -1,8 +1,9 @@
 # advanced/multi_query.py
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_community.llms import Ollama
+from langchain_ollama import OllamaLLM
 
-llm = Ollama(model="mistral")
+llm = OllamaLLM(model="mistral")
 
 MULTI_QUERY_PROMPT = ChatPromptTemplate.from_template("""
 You are an AI assistant. Your task is to generate 3 different 

@@ -1,0 +1,62 @@
+[
+  {
+    "question": "What was Tesla's total revenue in 2023?",
+    "answer": " The total revenue for Tesla, Inc. in 2023 was $96,773 million.",
+    "faithfulness": 1.0,
+    "answer_relevancy": null
+  },
+  {
+    "question": "What was Tesla's net income in 2023?",
+    "answer": " The net income of Tesla Inc. in the year ended December 31, 2023, is $14,974 million.",
+    "faithfulness": 1.0,
+    "answer_relevancy": null
+  },
+  {
+    "question": "How much did Tesla spend on research and development in 2023?",
+    "answer": " Tesla spent $3,969 million on research and development in 2023.",
+    "faithfulness": 1.0,
+    "answer_relevancy": null
+  },
+  {
+    "question": "What were Tesla's main risk factors in 2023?",
+    "answer": " From the provided context, there isn't a specific list of Tesla's main risk factors for the year 2023 mentioned in the excerpt. However, one potential risk factor alluded to is the incident where a foreign news outlet reportedly obtained misappropriated data including non-public Tesla business and personal information. This could potentially lead to various risks such as reputational damage, legal issues, and privacy concerns. But it's important to note that this is only one example of a risk factor mentioned in the text. The detailed list of risk factors can be found in Item 1A: Risk Factors starting from page 14 of the Annual Report on Form 10-K for the year ended December 31, 2023.",
+    "faithfulness": 0.571,
+    "answer_relevancy": null
+  },
+  {
+    "question": "How many vehicles did Tesla deliver in 2023?",
+    "answer": " In the given context, it's stated that 1,808,581 consumer vehicles were delivered in 2023. However, it doesn't specify whether these are all Tesla vehicles or a combination of different brands. The data provided is related to Tesla's financial statements and does not contain specific delivery numbers for their own production.",
+    "faithfulness": 0.4,
+    "answer_relevancy": null
+  },
+  {
+    "question": "What was Tesla's gross profit margin in 2023?",
+    "answer": " The gross profit margin in 2023 for Tesla was 19.4%.",
+    "faithfulness": 1.0,
+    "answer_relevancy": null
+  },
+  {
+    "question": "How did Tesla's revenue change from 2022 to 2023?",
+    "answer": " Tesla's total revenue increased from $81.46 billion in 2022 to $96.77 billion in 2023, representing an increase of approximately $15.31 billion or about 18.7%. This increase is due primarily to an increase in automotive sales revenue.",
+    "faithfulness": 0.6,
+    "answer_relevancy": null
+  },
+  {
+    "question": "What were Tesla's main sources of revenue in 2023?",
+    "answer": " In 2023, Tesla's main sources of revenue were from Automotive sales ($78,509 million), Automotive regulatory credits ($1,790 million), Automotive leasing ($2,120 million), Energy generation and storage ($6,035 million), and Services and other ($8,319 million). The total revenues for 2023 were $96,773 million.",
+    "faithfulness": 0.636,
+    "answer_relevancy": null
+  },
+  {
+    "question": "How much cash did Tesla have at end of 2023?",
+    "answer": " The amount of cash that Tesla had at the end of 2023 was $16,398 million. This is indicated in the Consolidated Balance Sheets under \"Cash and cash equivalents\" for December 31, 2023.",
+    "faithfulness": 1.0,
+    "answer_relevancy": null
+  },
+  {
+    "question": "What was Tesla's operating income in 2023?",
+    "answer": " To calculate Tesla's operating income for 2023, we need to find the net cash provided by operating activities and then adjust it for changes in working capital. However, the information provided does not include all necessary details for calculating operating income directly from the consolidated statements of cash flows.\n\nLet's first calculate Net Cash Provided By Operating Activities (NCP-OA) using the given data:\n\n1. Start with Net Income: $14,974\n2. Add Back Depreciation, Amortization, and Impairment: $4,667 (+$4,667)\n3. Add Back Stock-based Compensation: $1,812 (+$1,812)\n4. Subtract Inventory and Purchase Commitments Write-downs: $(463) (-$463)\n5. Total Adjustments to Reconcile Net Income to NCP-OA: $14,974 + $4,667 + $1,812 - $463 = $20,414\n\nSince the information about changes in working capital (such as accounts receivable and inventory) is missing, we cannot directly calculate operating income. To find it, you would need to subtract the total change in working capital from the NCP-OA ($20,414).",
+    "faithfulness": 0.818,
+    "answer_relevancy": null
+  }
+]

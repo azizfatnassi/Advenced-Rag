@@ -122,8 +122,8 @@ async def chat(question: str, session_id: str = "default"):
 
   
     chat_history = get_chat_history_as_string(session_id)
-
-    chunks = advanced_retrieval(question, vectorstore)
+    search_query= f"{chat_history}\n{question}" if chat_history else question
+    chunks = advanced_retrieval(search_query, vectorstore)
     reranked_chunks = rerank(question, chunks, top_k=3)
     answer = generate_answer(question, reranked_chunks, chat_history=chat_history)
 
