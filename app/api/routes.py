@@ -5,6 +5,8 @@ from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_chroma import Chroma
 from app.rag.chunking import ingest_document
 from app.rag.evaluate import evaluate_rag
+from app.rag.extraction import extract_financial_data
+from app.rag.observabiltity import get_langfuse
 from app.rag.reranker import rerank
 from app.rag.retriever import advanced_retrieval
 from langchain_ollama import OllamaLLM
@@ -116,32 +118,71 @@ async def ask_filtred(question:str,company:str=None,year:str=None):
         "answer": answer,
         "chunks_found": len(chunks)
     }
+
+@router.post("/extract")
+async def extract(question: str,company:str=None, year:str=None ):
+
+    vectorstore=get_vectorstore()
+
+    where_filter={}
+    if company and year:
+        where_filter={"$and": [{"company":company},{"year":year}]}
+    elif company:
+        where_filter = {"company": company}
+    elif year:
+        where_filter = {"year": year}
+    
+    chunks= advanced_retrieval(question,vectorstore,filters=where_filter if where_filter else None)
+    reranked_chunks=rerank(question,chunks,top_k=6)
+
+    
+
+    context="\n\n".join([c.page_content for c in reranked_chunks])
+    print("DEBUG CONTEXT SENT TO EXTRACTION:\n", context)
+    extracted_data=extract_financial_data(context)
+
+    return{
+        "question":question,
+        "filters_applied":{"company":company,"yesr":year},
+        "extracted_data": extracted_data.model_dump(),
+        "chunks_used":len(reranked_chunks)
+    }
+
+
 @router.post("/chat/memory")
 async def chat(question: str, session_id: str = "default"):
+    langfuse = get_langfuse()
+    trace = langfuse.trace(
+        name="chat-memory",
+        input={"question": question, "session_id": session_id}
+    )
+
     vectorstore = get_vectorstore()
-
-  
     chat_history = get_chat_history_as_string(session_id)
-    search_query= f"{chat_history}\n{question}" if chat_history else question
-    chunks = advanced_retrieval(search_query, vectorstore)
-    reranked_chunks = rerank(question, chunks, top_k=3)
-    answer = generate_answer(question, reranked_chunks, chat_history=chat_history)
 
-   
+    retrieval_span = trace.span(name="retrieval")
+    search_query = f"{chat_history}\n{question}" if chat_history else question
+    chunks = advanced_retrieval(search_query, vectorstore)
+    retrieval_span.end(output={"chunks_found": len(chunks)})
+
+    rerank_span = trace.span(name="rerank")
+    reranked_chunks = rerank(question, chunks, top_k=3)
+    rerank_span.end(output={"chunks_out": len(reranked_chunks)})
+
+    generation_span = trace.span(name="generation")
+    answer = generate_answer(question, reranked_chunks, chat_history=chat_history)
+    generation_span.end(output={"answer": answer})
+
+    trace.update(output={"answer": answer})
+    langfuse.flush()
+
     save_to_memory(session_id, question, answer)
 
     return {
         "session_id": session_id,
         "question": question,
         "answer": answer,
-        "sources": [{
-            "content": c.page_content[:200],
-            "company": c.metadata.get("company","unknown"),
-            "year":c.metadata.get("year","unknown"),
-            "page":c.metadata.get("page","unknown")
-        }
-        for c in reranked_chunks
-        ]
+        "sources": [{"content": c.page_content[:200], "company": c.metadata.get("company", "unknown"), "year": c.metadata.get("year", "unknown"), "page": c.metadata.get("page", "unknown")} for c in reranked_chunks]
     }
 
 @router.delete("/chat/{session_id}")

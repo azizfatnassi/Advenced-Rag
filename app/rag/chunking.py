@@ -16,7 +16,7 @@ def load_file(file_path:str):
     ext= os.path.splitext(file_path)[-1].lower()
     
     if ext ==".pdf":
-        loader= PyPDFLoader(file_path)
+        loader= PyPDFLoader(file_path,extract_images=False)
 
 
     elif ext ==".txt":

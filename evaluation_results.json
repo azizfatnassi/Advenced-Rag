@@ -1,62 +1,62 @@
 [
   {
     "question": "What was Tesla's total revenue in 2023?",
-    "answer": " The total revenue for Tesla, Inc. in 2023 was $96,773 million.",
+    "answer": " The total revenue of Tesla in 2023 was $96,773 million.",
     "faithfulness": 1.0,
-    "answer_relevancy": null
+    "answer_relevancy": 0.994
   },
   {
     "question": "What was Tesla's net income in 2023?",
-    "answer": " The net income of Tesla Inc. in the year ended December 31, 2023, is $14,974 million.",
+    "answer": " The net income of Tesla, Inc. in the year ended December 31, 2023 was $14,974 million.",
     "faithfulness": 1.0,
-    "answer_relevancy": null
+    "answer_relevancy": 0.934
   },
   {
     "question": "How much did Tesla spend on research and development in 2023?",
     "answer": " Tesla spent $3,969 million on research and development in 2023.",
     "faithfulness": 1.0,
-    "answer_relevancy": null
+    "answer_relevancy": 1.0
   },
   {
     "question": "What were Tesla's main risk factors in 2023?",
-    "answer": " From the provided context, there isn't a specific list of Tesla's main risk factors for the year 2023 mentioned in the excerpt. However, one potential risk factor alluded to is the incident where a foreign news outlet reportedly obtained misappropriated data including non-public Tesla business and personal information. This could potentially lead to various risks such as reputational damage, legal issues, and privacy concerns. But it's important to note that this is only one example of a risk factor mentioned in the text. The detailed list of risk factors can be found in Item 1A: Risk Factors starting from page 14 of the Annual Report on Form 10-K for the year ended December 31, 2023.",
-    "faithfulness": 0.571,
-    "answer_relevancy": null
+    "answer": " In 2023, Tesla faced several significant risk factors. From the provided context, the following are listed as major risk factors:\n\n1. Cybersecurity risks: The company was involved in a data breach incident where misappropriated data, including potentially non-public business and personal information, was obtained. This event required notifications to affected individuals and regulatory authorities (Item 1C, Page 29).\n\n2. Legal proceedings: Tesla is subject to various legal proceedings, risks, and claims that arise from the normal course of business activities. For instance, a foreign news outlet reported on misappropriated data in the second quarter of 2023. The case involving this data breach is currently in discovery (Item 3, Page 30).\n\n3. Equal Employment Opportunity Commission (EEOC) allegations: An EEOC cause finding was issued against Tesla in June 2022, which closely parallels the CRD\u2019s allegations. On September 28, 2023, the EEOC filed a civil complaint against Tesla in the United States District Court for the Northern District of California (Item 3, Page 30).",
+    "faithfulness": 0.8,
+    "answer_relevancy": 0.976
   },
   {
     "question": "How many vehicles did Tesla deliver in 2023?",
-    "answer": " In the given context, it's stated that 1,808,581 consumer vehicles were delivered in 2023. However, it doesn't specify whether these are all Tesla vehicles or a combination of different brands. The data provided is related to Tesla's financial statements and does not contain specific delivery numbers for their own production.",
-    "faithfulness": 0.4,
-    "answer_relevancy": null
+    "answer": " In the given context, Tesla delivered 1,808,581 consumer vehicles in 2023.",
+    "faithfulness": 1.0,
+    "answer_relevancy": 0.975
   },
   {
     "question": "What was Tesla's gross profit margin in 2023?",
-    "answer": " The gross profit margin in 2023 for Tesla was 19.4%.",
+    "answer": " The gross profit margin for Tesla in 2023, as mentioned in the context provided, was 19.4%.",
     "faithfulness": 1.0,
-    "answer_relevancy": null
+    "answer_relevancy": 0.994
   },
   {
     "question": "How did Tesla's revenue change from 2022 to 2023?",
-    "answer": " Tesla's total revenue increased from $81.46 billion in 2022 to $96.77 billion in 2023, representing an increase of approximately $15.31 billion or about 18.7%. This increase is due primarily to an increase in automotive sales revenue.",
-    "faithfulness": 0.6,
-    "answer_relevancy": null
+    "answer": " Tesla's total revenue increased from $81.462 billion in 2022 to $96.773 billion in 2023, representing a growth of approximately 18.9%. This increase is due to an increase in revenues from automotive sales, energy generation and storage, and services and other segments. The cost of automotive sales revenue also increased, but partially offset by a decrease in the average combined cost per unit of vehicles due to sales mix and lower inbound freight.",
+    "faithfulness": 0.9,
+    "answer_relevancy": 0.863
   },
   {
     "question": "What were Tesla's main sources of revenue in 2023?",
-    "answer": " In 2023, Tesla's main sources of revenue were from Automotive sales ($78,509 million), Automotive regulatory credits ($1,790 million), Automotive leasing ($2,120 million), Energy generation and storage ($6,035 million), and Services and other ($8,319 million). The total revenues for 2023 were $96,773 million.",
+    "answer": " Tesla's main sources of revenue in 2023 were from Automotive sales ($78,509 million), Automotive regulatory credits ($1,790 million), Automotive leasing ($2,120 million), Energy generation and storage ($6,035 million), and Services and other ($8,319 million). The total revenue for 2023 was $96,773 million.",
     "faithfulness": 0.636,
-    "answer_relevancy": null
+    "answer_relevancy": 0.957
   },
   {
     "question": "How much cash did Tesla have at end of 2023?",
-    "answer": " The amount of cash that Tesla had at the end of 2023 was $16,398 million. This is indicated in the Consolidated Balance Sheets under \"Cash and cash equivalents\" for December 31, 2023.",
+    "answer": " The cash and cash equivalents that Tesla had at the end of 2023 was $16,398 million.",
     "faithfulness": 1.0,
-    "answer_relevancy": null
+    "answer_relevancy": 0.938
   },
   {
     "question": "What was Tesla's operating income in 2023?",
-    "answer": " To calculate Tesla's operating income for 2023, we need to find the net cash provided by operating activities and then adjust it for changes in working capital. However, the information provided does not include all necessary details for calculating operating income directly from the consolidated statements of cash flows.\n\nLet's first calculate Net Cash Provided By Operating Activities (NCP-OA) using the given data:\n\n1. Start with Net Income: $14,974\n2. Add Back Depreciation, Amortization, and Impairment: $4,667 (+$4,667)\n3. Add Back Stock-based Compensation: $1,812 (+$1,812)\n4. Subtract Inventory and Purchase Commitments Write-downs: $(463) (-$463)\n5. Total Adjustments to Reconcile Net Income to NCP-OA: $14,974 + $4,667 + $1,812 - $463 = $20,414\n\nSince the information about changes in working capital (such as accounts receivable and inventory) is missing, we cannot directly calculate operating income. To find it, you would need to subtract the total change in working capital from the NCP-OA ($20,414).",
-    "faithfulness": 0.818,
-    "answer_relevancy": null
+    "answer": " To find Tesla's operating income for the year ended December 31, 2023, we need to start with the net income and then make adjustments for depreciation, amortization, impairment, stock-based compensation, inventory write-downs, and any other non-cash expenses. However, there seems to be a missing step in the provided context.\n\nIn the Cash Flows from Operating Activities section, we can see that Tesla's net income for 2023 was $14,974 million. In the Adjustments to reconcile net income to net cash provided by operating activities, we have the following non-cash expenses:\n\n* Depreciation, amortization, and impairment: $4,667 million\n* Stock-based compensation: $1,812 million\n* Inventory write-downs: $463 million\n\nAssuming no other significant adjustments, we can calculate the operating income as follows:\n\nOperating Income = Net Income - (Depreciation + Amortization + Impairment + Stock-based compensation + Inventory Write-downs)\n\nOperating Income = $14,974 million - ($4,667 million + $1,812 million + $463 million)\n\nOperating Income \u2248 $14,974 million - $7,042 million\n\nOperating Income \u2248 $7,932 million\n\nHowever, it's essential to note that the context provided is incomplete and may have other adjustments not listed. For a precise calculation of operating income, one would need the full financial statements or more detailed information about Tesla's operations during the year ended December 31, 2023.",
+    "faithfulness": 0.667,
+    "answer_relevancy": 0.0
   }
 ]

@@ -2,7 +2,7 @@ import os
 import math
 from dotenv import load_dotenv
 from ragas import evaluate, EvaluationDataset, SingleTurnSample
-from ragas.metrics import faithfulness, answer_relevancy
+from ragas.metrics import faithfulness, AnswerRelevancy
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_groq import ChatGroq
@@ -11,6 +11,8 @@ from langchain_ollama import OllamaEmbeddings
 load_dotenv()
 print("API KEY LOADED:", os.getenv("GROQ_API_KEY") is not None)
 print("API KEY VALUE:", os.getenv("GROQ_API_KEY")[:10] if os.getenv("GROQ_API_KEY") else "NONE")
+
+answer_relevancy = AnswerRelevancy(strictness=1)
 
 def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
     llm = LangchainLLMWrapper(ChatGroq(
