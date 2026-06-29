@@ -1,8 +1,10 @@
 import shutil
 import os
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, Depends, UploadFile, File
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_chroma import Chroma
+from app.agent.graph import build_router_graph
+from app.dependencies import get_vectordb
 from app.rag.chunking import ingest_document
 from app.rag.evaluate import evaluate_rag
 from app.rag.extraction import extract_financial_data
@@ -189,3 +191,15 @@ async def chat(question: str, session_id: str = "default"):
 async def clear_chat(session_id: str):
     cleared = clear_memory(session_id)
     return {"cleared": cleared, "session_id": session_id}
+
+
+@router.post("/agent/ask")
+async def agent_ask(question:str,vectordb=Depends(get_vectordb)):
+    graph = build_router_graph(vectordb)
+    result = graph.invoke({"question": question})
+    return {
+        "question": result["question"],
+        "question_type": result["question_type"],
+        "answer": result["answer"],
+        "chunks_used": len(result["chunks"])
+    }
