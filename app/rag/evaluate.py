@@ -16,7 +16,7 @@ answer_relevancy = AnswerRelevancy(strictness=1)
 
 def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
     llm = LangchainLLMWrapper(ChatGroq(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.6-27b",
         api_key=os.getenv("GROQ_API_KEY")
     ))
     embeddings = LangchainEmbeddingsWrapper(OllamaEmbeddings(model="nomic-embed-text"))

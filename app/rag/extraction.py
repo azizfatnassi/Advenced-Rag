@@ -55,7 +55,7 @@ class FinancialMetrics(BaseModel):
 def extract_financial_data(context:str)->FinancialMetrics:
 
     result=client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="qwen/qwen3.6-27b",
         response_model=FinancialMetrics,
         max_retries=2,
         messages=[

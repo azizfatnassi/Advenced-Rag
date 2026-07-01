@@ -3,4 +3,4 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-groq_llm=ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+groq_llm = ChatGroq(model="qwen/qwen3.6-27b", temperature=0)
