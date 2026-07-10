@@ -1,9 +1,9 @@
 # advanced/multi_query.py
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_community.llms import Ollama
-from langchain_ollama import OllamaLLM
+from langchain_groq import  ChatGroq
 
-llm = OllamaLLM(model="mistral")
+llm = ChatGroq(model="llama-3.1-8b-instant",temperature=0)
 
 MULTI_QUERY_PROMPT = ChatPromptTemplate.from_template("""
 You are an AI assistant. Your task is to generate 3 different 
@@ -24,7 +24,7 @@ def generate_queries(question: str) -> list[str]:
     result = chain.invoke({"question": question})
     
     # Parse the 3 questions
-    queries = [q.strip() for q in result.strip().split("\n") if q.strip()]
+    queries = [q.strip() for q in result.content.strip().split("\n") if q.strip()]
     
     # Always include original
     queries.append(question)

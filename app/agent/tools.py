@@ -7,12 +7,11 @@ from app.rag.reranker import rerank
 import numexpr 
 
 
-_current_trace=None
 
-def set_trace(trace):
-    global _current_trace
-    _current_trace= trace
+_last_retrieved_chunks= []
 
+def get_last_chunks():
+    return _last_retrieved_chunks
 
 @tool
 def search_documents(query:str)-> str:
@@ -21,17 +20,20 @@ def search_documents(query:str)-> str:
      Use this when you need to find specific financial data, numbers, facts,
      or context from compnay annual reports or 10-K fillings .
      Input should be a specific search query about financial data.
+    
     """
-    span= None
+
+    global _last_retrieved_chunks
+
+
     try: 
 
       
-        if _current_trace :
-         span=_current_trace.span(name="tool-search_documents",input= query) 
-
+        
         vectordb=get_vectordb()
         chunks= vectordb.similarity_search(query,k=4)
         reranked=rerank(query,chunks,top_k=3)
+        _last_retrieved_chunks= reranked
 
         if not reranked:
             return "No relevant documents for this query"
@@ -42,8 +44,7 @@ def search_documents(query:str)-> str:
             year= chunk.metadata.get("year","unknown")
             results.append(f"[Source {i+1} - {company} {year}\n{chunk.page_content}]")
         output= "\n\n".join(results)
-        if span:
-         span.end(output=output)
+        
         return output
     except Exception as e :
         return f"Error searching documents : {str(e)}"
@@ -53,17 +54,14 @@ def calculate(expression: str) -> str:
     """Evaluate a mathematical expression and return the result.
     Use this when you need to calculate growth rates, percentages, ratios,
     or any arithmetic on financial numbers.
-    Input must be a valid math expression like '(96773 - 53823) / 53823 * 100'
-    Do not include units or currency symbols in the expression."""
-    span= None
+    Input must be a valid math expression with ACTUAL NUMBERS only.
+    
+    Do not include variable names, units or currency symbols."""
     try:
         # numexpr is safe — it only evaluates math, not arbitrary Python
-        if _current_trace:
-            span=_current_trace.span(name="tool-calculate",input=expression)
         result = numexpr.evaluate(expression)
         final= f"{float(result):.4f}"
-        if span:
-            span.end(output=final)
+        
         return final
     
     except Exception as e:
@@ -75,11 +73,8 @@ def get_stock_price(ticker:str)->str:
     Use this when user asks about current stock price or market data,
     Input must be valid stock ticker symbol like 'TSLA','AAPL'
     this tool fetches live data from internet."""
-    span=None
     try:
         import yfinance as yf
-        if _current_trace:
-            span=_current_trace.span(name="tool-price",input=ticker)
         stock=yf.Ticker(ticker.upper().strip())
         info = stock.info
 
@@ -96,8 +91,6 @@ def get_stock_price(ticker:str)->str:
 
           if market_cap:
              result += f"Market Cap: {currency} {market_cap:,.0f}"
-        if span:
-            span.end(output=result)
 
         return result
     except ImportError:

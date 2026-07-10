@@ -3,18 +3,19 @@ import os
 from fastapi import APIRouter, Depends, UploadFile, File
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain_chroma import Chroma
+from app.agent.agent import build_agent, run_agent
 from app.agent.graph import build_router_graph
+from app.agent.tools import get_last_chunks
 from app.dependencies import get_vectordb
 from app.rag.chunking import ingest_document
 from app.rag.evaluate import evaluate_rag
 from app.rag.extraction import extract_financial_data
-from app.rag.observabiltity import get_langfuse
 from app.rag.reranker import rerank
 from app.rag.retriever import advanced_retrieval
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from app.rag.memory import get_chat_history_as_string, get_or_create_memory, clear_memory, save_to_memory
-
+from langfuse import observe, get_client
 
 
 
@@ -23,6 +24,9 @@ import os
 #VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
 VECTORSTORE_DIR = "./app/vectorstore"
 UPLOAD_DIR = "./data"
+
+
+langfuse=get_client()
 
 def get_vectorstore():
     embedding_fn = OllamaEmbeddings(model="nomic-embed-text")
@@ -151,34 +155,55 @@ async def extract(question: str,company:str=None, year:str=None ):
     }
 
 
-@router.post("/chat/memory")
-async def chat(question: str, session_id: str = "default"):
-    langfuse = get_langfuse()
-    trace = langfuse.trace(
-        name="chat-memory",
-        input={"question": question, "session_id": session_id}
-    )
 
+# PERF: advanced_retrieval uses Ollama/Mistral for MultiQuery + HyDE
+# causing 58s latency. Fix: move to Groq llm for query generation.
+# Identified via LangFuse trace aa42adcf on 2026-07-06.
+
+
+@router.post("/chat/memory")
+@observe()
+async def chat(question: str, session_id: str = "default"):
+   
     vectorstore = get_vectorstore()
     chat_history = get_chat_history_as_string(session_id)
 
-    retrieval_span = trace.span(name="retrieval")
     search_query = f"{chat_history}\n{question}" if chat_history else question
-    chunks = advanced_retrieval(search_query, vectorstore)
-    retrieval_span.end(output={"chunks_found": len(chunks)})
 
-    rerank_span = trace.span(name="rerank")
-    reranked_chunks = rerank(question, chunks, top_k=3)
-    rerank_span.end(output={"chunks_out": len(reranked_chunks)})
+    with langfuse.start_as_current_observation(as_type="span",name="retrieval") as span:
+      chunks = advanced_retrieval(search_query, vectorstore)
+      span.update(output={"chunks_out":len(chunks)})
 
-    generation_span = trace.span(name="generation")
-    answer = generate_answer(question, reranked_chunks, chat_history=chat_history)
-    generation_span.end(output={"answer": answer})
+    with langfuse.start_as_current_observation(as_type="span",name="rerank") as span:
+     reranked_chunks = rerank(question, chunks, top_k=3)
+     span.update(output={"reranked_chunks":len(reranked_chunks)})
+   
+    with langfuse.start_as_current_observation(as_type="span",name="generate-rag-chat") as span:
+      answer = generate_answer(question, reranked_chunks, chat_history=chat_history)
+      span.update(output={"answer": answer})
 
-    trace.update(output={"answer": answer})
-    langfuse.flush()
 
     save_to_memory(session_id, question, answer)
+
+    scores= evaluate_rag(question,answer,reranked_chunks)
+    
+    print("SCORES:", scores)
+    print("FAITHFULNESS:", scores["faithfulness"])
+    print("RELEVANCY:", scores["answer_relevancy"])
+    if scores["faithfulness"] is not None:
+     langfuse.score_current_trace(
+        name="faithfulness",
+        value=scores["faithfulness"],
+        comment="RAGAS faithfulness"
+    )
+
+    if scores["answer_relevancy"] is not None:
+     langfuse.score_current_trace(
+        name="answer_relevancy", 
+        value=scores["answer_relevancy"],
+        comment="RAGAS answer relevancy"
+    )
+
 
     return {
         "session_id": session_id,
@@ -193,7 +218,7 @@ async def clear_chat(session_id: str):
     return {"cleared": cleared, "session_id": session_id}
 
 
-@router.post("/agent/ask")
+@router.post("/agent/graph/ask")
 async def agent_ask(question:str,vectordb=Depends(get_vectordb)):
     graph = build_router_graph(vectordb)
     result = graph.invoke({"question": question})
@@ -202,4 +227,36 @@ async def agent_ask(question:str,vectordb=Depends(get_vectordb)):
         "question_type": result["question_type"],
         "answer": result["answer"],
         "chunks_used": len(result["chunks"])
+    }
+
+agent_instance = build_agent()
+
+@router.post("/agent/ask")
+@observe()
+async def agent_ask(question: str):
+    answer = run_agent(agent_instance, question)
+
+    chunks = get_last_chunks()
+
+    if chunks:
+        scores = evaluate_rag(question, answer, chunks)
+        print("AGENT SCORES:", scores)
+
+        if scores["faithfulness"] is not None:
+            langfuse.score_current_trace(
+                name="faithfulness",
+                value=scores["faithfulness"],
+                comment="RAGAS faithfulness - agent"
+            )
+        if scores["answer_relevancy"] is not None:
+            langfuse.score_current_trace(
+                name="answer_relevancy",
+                value=scores["answer_relevancy"],
+                comment="RAGAS answer relevancy - agent"
+            )
+
+    return {
+        "question": question,
+        "answer": answer,
+        "chunks_used": len(chunks)
     }

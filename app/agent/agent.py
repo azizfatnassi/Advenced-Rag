@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from langfuse import Langfuse
+from langfuse import get_client
 
 # langfuse pinned to 2.60.0 — newer versions removed .trace() method
 # which breaks Phase 2 /chat/memory endpoint
@@ -16,30 +16,26 @@ from app.agent.tools import calculate, get_stock_price, search_documents
 from langgraph.prebuilt import create_react_agent 
 from app.agent.llm import groq_llm
 #from langfuse.callback import CallbackHandler
-from app.agent.tools import set_trace
+from langfuse.langchain import CallbackHandler
 
 
 
-langfuse = Langfuse(
-    public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
-    secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
-    host=os.getenv("LANGFUSE_HOST", "http://localhost:3000")
-)
+langfuse = get_client()
 
-SYSTEM_PROMPT= """ You are a financial expert and assisntant with access to 
-a datbase of company financial documents and treal time market data 
-you have access to these tools:
--search_documents: search financial reports for specific data 
--calculate: perform math on financial numbers
--get_stock_price: get current stock price for a ticker
+SYSTEM_PROMPT = """You are a financial expert and assistant with access to 
+company financial documents and real-time market data.
 
-Rules: 
-1- Always search data before trying to answer from memory
-2-Use calculate when you need to compute growth rates, ratios or percentages
-3-Be specifique - cite the source company and year whene referencing numbers
-4- If data is not found, say so clearly — never hallucinate numbers"""
-
-
+Rules:
+1. Always search for data before trying to answer from memory.
+2. if the question asks for  a margin , ratio, or growth rate and the
+document contains the raw numbers, calculate it yourself using the calculate tool.
+Example: gross profit margin = (gross profit / revenue) * 100.
+3. Be specific — cite the source company and year when referencing numbers.
+4. If data is not found, say so clearly — never hallucinate numbers.
+5. when using the calculate tool always use actual numbers not variables when calculating,
+6. If your first search does not return enough data to answer, search again 
+   with different keywords before giving up.
+    """
 def build_agent():
     tools=[search_documents, calculate, get_stock_price]
     agent=create_react_agent(
@@ -50,36 +46,23 @@ def build_agent():
     )
     return agent
 
-def run_agent(agent,question:str,user_id:str= "dev", question_type: str = "unknown")->str:
-  
-  trace= langfuse.trace(name="agent-run",
-        user_id= user_id,
-        metadata={
-            "question_type": question_type,
-            "model":"qwen/qwen3.6-27b",
-                  },
-        input=question
+def run_agent(agent, question: str, user_id: str = "dev", question_type: str = "unknown") -> str:
+    handler = CallbackHandler()
+
+    try:
+        result = agent.invoke(
+            {"messages": [{"role": "user", "content": question}]},
+            config={"callbacks": [handler]}
         )
-  set_trace(trace)
-  try:
-      span= trace.span(name="agent-invoke",input=question)
 
-      result= agent.invoke(
-          {"messages": [{"role":"user","content":question}]}
-      )
-      answer=result["messages"][-1].content
-      span.end(output=answer)
-      trace.update(output=answer)
+       
+        answer = result["messages"][-1].content
+        return answer
 
-      return answer
-  except Exception as e:
-      trace.update(output=f"ERROR:{str(e)}")
-      raise
-  finally :
-     set_trace(None)
-     langfuse.flush()
-
-     
+    except Exception as e:
+        raise
+    finally:
+        langfuse.flush()
 
 
 

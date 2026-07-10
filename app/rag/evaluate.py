@@ -16,8 +16,9 @@ answer_relevancy = AnswerRelevancy(strictness=1)
 
 def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
     llm = LangchainLLMWrapper(ChatGroq(
-        model="qwen/qwen3.6-27b",
-        api_key=os.getenv("GROQ_API_KEY")
+        model="llama-3.1-8b-instant",
+        api_key=os.getenv("GROQ_API_KEY"),
+        max_tokens=2000
     ))
     embeddings = LangchainEmbeddingsWrapper(OllamaEmbeddings(model="nomic-embed-text"))
 
@@ -25,7 +26,7 @@ def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
         SingleTurnSample(
             user_input=question,
             response=answer,
-            retrieved_contexts=[c.page_content for c in contexts],
+            retrieved_contexts=[c.page_content[:500] for c in contexts],
         )
     ]
 

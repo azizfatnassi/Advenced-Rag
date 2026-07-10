@@ -1,9 +1,9 @@
 
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama import OllamaLLM
+from langchain_groq import ChatGroq
 
-llm=OllamaLLM(model="mistral")
+llm=ChatGroq(model="llama-3.1-8b-instant",temperature=0)
 
 HYDE_PROMPT=ChatPromptTemplate.from_template(""" Write a short factual
        paragraph that would answer the question asked .
@@ -16,4 +16,4 @@ HYDE_PROMPT=ChatPromptTemplate.from_template(""" Write a short factual
 
 def hyde_answer(question: str)->str:
     chain= HYDE_PROMPT | llm 
-    return chain.invoke({"question":question})
+    return chain.invoke({"question":question}).content
