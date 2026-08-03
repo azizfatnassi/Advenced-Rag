@@ -1,10 +1,17 @@
 import streamlit as st
 import requests
 
-API_URL="http://127.0.0.1:8001"
+import os
+API_URL = os.getenv("BACKEND_URL", "http://localhost:8001")
+
 
 st.set_page_config(page_title="Finance RAG",layout="wide")
 st.title("Finance Document Assistant")
+
+st.divider()
+st.header("Mode")
+mode= st.radio("Select mode",["RAG","AGENT"],horizontal=True)
+
 
 if "messages" not in st.session_state:
     st.session_state.messages=[]
@@ -47,40 +54,50 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-if prompt := st.chat_input("Ask about your document ..."):
+if prompt := st.chat_input("Ask about your document..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
 
-   st.session_state.messages.append({"role":"user","content":prompt})
-   with st.chat_message("user"):
-       st.write(prompt)
+    with st.spinner("Thinking..."):
+        if mode == "RAG":
+            response = requests.post(
+                f"{API_URL}/chat/memory",
+                params={"question": prompt, "session_id": st.session_state.session_id}
+            )
+        else:
+            response = requests.post(
+                f"{API_URL}/agent/ask",
+                params={"question": prompt, "session_id": st.session_state.session_id}
+            )
 
-   
-   with st.spinner("Thinking .."):
-       response = requests.post(f"{API_URL}/chat/memory",
-                                params={
-                                    "question":prompt,
-                                    "session_id":st.session_state.session_id
-                                }
-       )
+    if response.status_code == 200:
+        data = response.json()
+        answer = data["answer"]
+        sources = data.get("sources", [])
+        scores = data.get("scores", {})
 
-   if response.status_code== 200:
-       data=response.json()
-       answer= data["answer"]
-       sources= data.get("sources",[])
-
-       st.session_state.messages.append({"role": "assistant", "content": answer})
-       with st.chat_message("assistant"):
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        with st.chat_message("assistant"):
             st.write(answer)
-            
-            if sources: 
+
+            if mode == "AGENT":
+                col1, col2 = st.columns(2)
+                with col1:
+                    if scores.get("faithfulness") is not None:
+                        st.metric("Faithfulness", f"{scores['faithfulness']:.2f}")
+                with col2:
+                    if scores.get("answer_relevancy") is not None:
+                        st.metric("Answer Relevancy", f"{scores['answer_relevancy']:.2f}")
+
+            if sources:
                 with st.expander("View Sources"):
-                  for i,source in enumerate(sources):
-                    st.markdown(f"**Chunk {i+1}** — {source['company']} {source['year']} (page {source['page']})")
-                    st.caption(source["content"])
-                    st.divider()
-
-   else:
-        st.error("Something went wrong. Is FastAPI running?")   
-
+                    for i, source in enumerate(sources):
+                        st.markdown(f"**Chunk {i+1}** — {source['company']} {source['year']} (page {source['page']})")
+                        st.caption(source["content"])
+                        st.divider()
+    else:
+        st.error("Something went wrong. Is FastAPI running?")
 
 if st.button("Clear Chat"):
     requests.delete(f"{API_URL}/chat/{st.session_state.session_id}")

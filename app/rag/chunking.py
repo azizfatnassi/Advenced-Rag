@@ -3,12 +3,13 @@
 import os 
 from langchain_community.document_loaders import TextLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_ollama import OllamaEmbeddings 
 from langchain_chroma import Chroma 
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 
 
 #VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
 VECTORSTORE_DIR = "./app/vectorstore"
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 
 def load_file(file_path:str):
@@ -47,7 +48,7 @@ def ingest_document(file_path: str , company: str = "unknown", year: str = "unkn
     print(f'Metadata added: company= {company},year={year}')
     print("Sample chunk metadata:", chunks[0].metadata)
 
-    embedding_fn= OllamaEmbeddings(model="nomic-embed-text")
+    embedding_fn=  SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
     vectorstore= Chroma(
         persist_directory=VECTORSTORE_DIR,

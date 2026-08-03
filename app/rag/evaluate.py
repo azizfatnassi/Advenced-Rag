@@ -6,11 +6,11 @@ from ragas.metrics import faithfulness, AnswerRelevancy
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from langchain_groq import ChatGroq
-from langchain_ollama import OllamaEmbeddings
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 
 load_dotenv()
-print("API KEY LOADED:", os.getenv("GROQ_API_KEY") is not None)
-print("API KEY VALUE:", os.getenv("GROQ_API_KEY")[:10] if os.getenv("GROQ_API_KEY") else "NONE")
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 answer_relevancy = AnswerRelevancy(strictness=1)
 
@@ -20,7 +20,7 @@ def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
         api_key=os.getenv("GROQ_API_KEY"),
         max_tokens=2000
     ))
-    embeddings = LangchainEmbeddingsWrapper(OllamaEmbeddings(model="nomic-embed-text"))
+    embeddings = LangchainEmbeddingsWrapper(SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"))
 
     samples = [
         SingleTurnSample(

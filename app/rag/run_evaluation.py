@@ -17,14 +17,15 @@ from langchain_core.prompts import ChatPromptTemplate
 import json
 
 VECTORSTORE_DIR = "./app/vectorstore"
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 def get_vectorstore():
-    embedding_fn = OllamaEmbeddings(model="nomic-embed-text")
+    embedding_fn = OllamaEmbeddings(model="nomic-embed-text",base_url=OLLAMA_BASE_URL)
     return Chroma(persist_directory=VECTORSTORE_DIR, embedding_function=embedding_fn)
 
 def generate_answer(question, chunks):
     context = "\n\n".join([c.page_content for c in chunks])
-    llm = OllamaLLM(model="mistral")
+    llm = OllamaLLM(model="mistral",base_url=OLLAMA_BASE_URL)
     prompt = ChatPromptTemplate.from_template("""You are a helpful assistant. Use the context to answer.
 
 Context:

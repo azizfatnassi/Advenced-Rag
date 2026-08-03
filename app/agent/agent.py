@@ -2,6 +2,8 @@
 import os
 
 from dotenv import load_dotenv
+
+from app.agent.memory import get_preferences_as_text
 load_dotenv()
 
 from langfuse import get_client
@@ -15,9 +17,9 @@ from app.agent.tools import calculate, get_stock_price, search_documents
 #migrate to create_agent from langchain.agents when upgrading/updating langchain
 from langgraph.prebuilt import create_react_agent 
 from app.agent.llm import groq_llm
-#from langfuse.callback import CallbackHandler
 from langfuse.langchain import CallbackHandler
-
+from langgraph.checkpoint.sqlite import SqliteSaver
+import sqlite3
 
 
 langfuse = get_client()
@@ -38,21 +40,29 @@ Example: gross profit margin = (gross profit / revenue) * 100.
     """
 def build_agent():
     tools=[search_documents, calculate, get_stock_price]
+    conn= sqlite3.connect("agent-memory.db",check_same_thread=False)
+    checkpointer=SqliteSaver(conn)
     agent=create_react_agent(
         model=groq_llm,
         tools=tools,
-        prompt=SYSTEM_PROMPT
+        prompt=SYSTEM_PROMPT,
+        checkpointer=checkpointer
 
     )
     return agent
 
-def run_agent(agent, question: str, user_id: str = "dev", question_type: str = "unknown") -> str:
+def run_agent(agent, question: str, session_id: str = "dev",user_id:str="default", question_type: str = "unknown") -> str:
     handler = CallbackHandler()
-
+    preferences = get_preferences_as_text(user_id)
+    config={"callbacks":[handler],"configurable":{"thread_id": session_id}}
+    if preferences:
+        full_question= f"{preferences}\n\nQuestion:{question}"
+    else:
+        full_question= question
     try:
         result = agent.invoke(
             {"messages": [{"role": "user", "content": question}]},
-            config={"callbacks": [handler]}
+            config=config
         )
 
        

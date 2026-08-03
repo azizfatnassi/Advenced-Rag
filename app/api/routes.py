@@ -1,7 +1,7 @@
 import shutil
 import os
 from fastapi import APIRouter, Depends, UploadFile, File
-from langchain_ollama import OllamaEmbeddings, OllamaLLM
+
 from langchain_chroma import Chroma
 from app.agent.agent import build_agent, run_agent
 from app.agent.graph import build_router_graph
@@ -12,30 +12,33 @@ from app.rag.evaluate import evaluate_rag
 from app.rag.extraction import extract_financial_data
 from app.rag.reranker import rerank
 from app.rag.retriever import advanced_retrieval
-from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from app.rag.memory import get_chat_history_as_string, get_or_create_memory, clear_memory, save_to_memory
 from langfuse import observe, get_client
+from langchain_groq import ChatGroq
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 
 
 
 router = APIRouter()
-import os
 #VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
 VECTORSTORE_DIR = "./app/vectorstore"
 UPLOAD_DIR = "./data"
+OLLAMA_BASE_URL=os.getenv("OLLAMA_BASE_URL","http://localhost:11434")
 
 
 langfuse=get_client()
 
 def get_vectorstore():
-    embedding_fn = OllamaEmbeddings(model="nomic-embed-text")
+    
+    embedding_fn = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     return Chroma(persist_directory=VECTORSTORE_DIR, embedding_function=embedding_fn)
 
 
 def generate_answer(question:str, chunks:list, chat_history: str ="")->str:
     context="\n\n".join([ c.page_content for c in chunks])
-    llm = OllamaLLM(model="mistral")
+    # llm = OllamaLLM(model="mistral",base_url=OLLAMA_BASE_URL)
+    llm= ChatGroq(model="llama-3.1-8b-instant")
     prompt=ChatPromptTemplate.from_template(
         """""You are a helpful assistant. Use the context 
              and conversation history to answer"
@@ -53,8 +56,8 @@ def generate_answer(question:str, chunks:list, chat_history: str ="")->str:
  Answer:
  """)
     chain= prompt | llm
-    return chain.invoke({"context": context, "question": question, "chat_history": chat_history})
-    
+    result = chain.invoke({"context": context, "question": question, "chat_history": chat_history})
+    return result.content if hasattr(result, 'content') else str(result)
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...),company: str = "unknown", year: str = "unknown"):
@@ -185,7 +188,10 @@ async def chat(question: str, session_id: str = "default"):
 
     save_to_memory(session_id, question, answer)
 
-    scores= evaluate_rag(question,answer,reranked_chunks)
+    import asyncio
+    scores = await asyncio.get_event_loop().run_in_executor(
+    None, evaluate_rag, question, answer, reranked_chunks
+     )
     
     print("SCORES:", scores)
     print("FAITHFULNESS:", scores["faithfulness"])
@@ -233,13 +239,17 @@ agent_instance = build_agent()
 
 @router.post("/agent/ask")
 @observe()
-async def agent_ask(question: str):
-    answer = run_agent(agent_instance, question)
+async def agent_ask(question: str, session_id: str = "default"):
+    answer = run_agent(agent_instance, question, session_id=session_id)
 
     chunks = get_last_chunks()
+    scores = {}
 
     if chunks:
-        scores = evaluate_rag(question, answer, chunks)
+        import asyncio
+        scores = await asyncio.get_event_loop().run_in_executor(
+         None, evaluate_rag, question, answer, reranked_chunks
+        )
         print("AGENT SCORES:", scores)
 
         if scores["faithfulness"] is not None:
@@ -258,5 +268,9 @@ async def agent_ask(question: str):
     return {
         "question": question,
         "answer": answer,
-        "chunks_used": len(chunks)
+        "chunks_used": len(chunks),
+        "scores": {
+            "faithfulness": scores.get("faithfulness") if chunks else None,
+            "answer_relevancy": scores.get("answer_relevancy") if chunks else None
+        }
     }
