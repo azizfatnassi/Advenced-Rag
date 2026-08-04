@@ -248,7 +248,7 @@ async def agent_ask(question: str, session_id: str = "default"):
     if chunks:
         import asyncio
         scores = await asyncio.get_event_loop().run_in_executor(
-         None, evaluate_rag, question, answer, reranked_chunks
+         None, evaluate_rag, question, answer, chunks
         )
         print("AGENT SCORES:", scores)
 
