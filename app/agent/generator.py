@@ -42,7 +42,7 @@ Analysis:
 PROMPTS= {
     "factual":FACTUAL_PROMPT,
     "comparative":COMPARATIVE_PROMPT,
-    "factual":FACTUAL_PROMPT
+    "analytical":ANALYTICAL_PROMPT
 }
 
 def generate_answer(question:str,chunks:list,question_type:str)->str:

@@ -24,7 +24,7 @@ def classify_question(question:str)->str:
     result= chain.invoke({"question":question})
     question_type= result.content.strip().lower()
 
-    if question_type not in ["factual","com parative","analytical"]:
+    if question_type not in ["factual","comparative","analytical"]:
         return "factual"
     
     return question_type 

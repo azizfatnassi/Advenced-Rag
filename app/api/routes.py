@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from langchain_chroma import Chroma
 from app.agent.agent import build_agent, run_agent
 from app.agent.graph import build_router_graph
+from app.agent.supervisor import build_supervisor_graph
 from app.agent.tools import get_last_chunks
 from app.dependencies import get_vectordb
 from app.rag.chunking import ingest_document
@@ -17,6 +18,7 @@ from app.rag.memory import get_chat_history_as_string, get_or_create_memory, cle
 from langfuse import observe, get_client
 from langchain_groq import ChatGroq
 from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langfuse.langchain import CallbackHandler
 
 
 
@@ -28,6 +30,9 @@ OLLAMA_BASE_URL=os.getenv("OLLAMA_BASE_URL","http://localhost:11434")
 
 
 langfuse=get_client()
+
+supervisor_graph = build_supervisor_graph()
+supervisor_histories={}
 
 def get_vectorstore():
     
@@ -225,7 +230,7 @@ async def clear_chat(session_id: str):
 
 
 @router.post("/agent/graph/ask")
-async def agent_ask(question:str,vectordb=Depends(get_vectordb)):
+async def agent_graph_ask(question:str,vectordb=Depends(get_vectordb)):
     graph = build_router_graph(vectordb)
     result = graph.invoke({"question": question})
     return {
@@ -274,3 +279,41 @@ async def agent_ask(question: str, session_id: str = "default"):
             "answer_relevancy": scores.get("answer_relevancy") if chunks else None
         }
     }
+
+
+@router.post("/agent/graph/supervisor")
+@observe()
+async def supervisor_ask(question:str,session_id:str="default"):
+
+    handler=CallbackHandler()
+    history=supervisor_histories.get(session_id, [])
+
+    try:
+     result= supervisor_graph.invoke({
+        "question":question,
+        "plan":None,
+        "agents_to_call": None,
+        "retrieval_output":None,
+        "calculation_output":None,
+        "market_output":None,
+        "final_answer":None,
+        "retrieval_chunks":None,
+        "iterations":0,
+        "max_iterations": 3,
+        "history":history
+     },
+     config={"callbacks": [handler]})
+
+     supervisor_histories[session_id] = result.get("history", [])
+
+     return {
+        "question":question,
+        "answer": result["final_answer"],
+        "iterations":result["iterations"],
+        "plan": result["plan"],
+        "session_id":session_id
+     }
+    except Exception as e:
+       raise
+    finally:
+       langfuse.flush
