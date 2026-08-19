@@ -66,7 +66,7 @@ def generate_answer(question:str, chunks:list, chat_history: str ="")->str:
 
 @router.post("/upload")
 async def upload_file(file: UploadFile = File(...),company: str = "unknown", year: str = "unknown"):
-    # Save file to data/
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
