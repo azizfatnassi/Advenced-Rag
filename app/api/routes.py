@@ -35,10 +35,12 @@ supervisor_graph = build_supervisor_graph()
 supervisor_histories={}
 
 def get_vectorstore():
-    
-    embedding_fn = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
+    from langchain_cohere import CohereEmbeddings
+    embedding_fn = CohereEmbeddings(
+        cohere_api_key=os.getenv("COHERE_API_KEY"),
+        model="embed-english-v3.0"
+    )
     return Chroma(persist_directory=VECTORSTORE_DIR, embedding_function=embedding_fn)
-
 
 def generate_answer(question:str, chunks:list, chat_history: str ="")->str:
     context="\n\n".join([ c.page_content for c in chunks])
