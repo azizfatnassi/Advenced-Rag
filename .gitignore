@@ -4,3 +4,4 @@ __pycache__/
 app/vectorstore/
 .env
 data/
+ngrok-v3-stable-windows-amd64.zip
