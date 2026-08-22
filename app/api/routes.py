@@ -1,7 +1,7 @@
 import shutil
 import os
 from fastapi import APIRouter, Depends, UploadFile, File
-
+import asyncio
 from langchain_chroma import Chroma
 from app.agent.agent import build_agent, run_agent
 from app.agent.graph import build_router_graph
@@ -9,7 +9,7 @@ from app.agent.supervisor import build_supervisor_graph
 from app.agent.tools import get_last_chunks
 from app.dependencies import get_vectordb
 from app.rag.chunking import ingest_document
-from app.rag.evaluate import evaluate_rag
+#from app.rag.evaluate import evaluate_rag
 from app.rag.extraction import extract_financial_data
 from app.rag.reranker import rerank
 from app.rag.retriever import advanced_retrieval
@@ -17,8 +17,14 @@ from langchain_core.prompts import ChatPromptTemplate
 from app.rag.memory import get_chat_history_as_string, get_or_create_memory, clear_memory, save_to_memory
 from langfuse import observe, get_client
 from langchain_groq import ChatGroq
-from langchain_community.embeddings import SentenceTransformerEmbeddings
+#from langchain_community.embeddings import SentenceTransformerEmbeddings
 from langfuse.langchain import CallbackHandler
+
+try:
+    from app.rag.evaluate import evaluate_rag
+    RAGAS_ENABLED = True
+except ImportError:
+    RAGAS_ENABLED = False
 
 
 
@@ -26,7 +32,6 @@ router = APIRouter()
 #VECTORSTORE_DIR = os.path.join(os.path.dirname(__file__), "..", "vectorstore")
 VECTORSTORE_DIR = "./app/vectorstore"
 UPLOAD_DIR = "./data"
-OLLAMA_BASE_URL=os.getenv("OLLAMA_BASE_URL","http://localhost:11434")
 
 
 langfuse=get_client()
@@ -195,28 +200,16 @@ async def chat(question: str, session_id: str = "default"):
 
     save_to_memory(session_id, question, answer)
 
-    import asyncio
-    scores = await asyncio.get_event_loop().run_in_executor(
-    None, evaluate_rag, question, answer, reranked_chunks
-     )
     
-    print("SCORES:", scores)
-    print("FAITHFULNESS:", scores["faithfulness"])
-    print("RELEVANCY:", scores["answer_relevancy"])
-    if scores["faithfulness"] is not None:
-     langfuse.score_current_trace(
-        name="faithfulness",
-        value=scores["faithfulness"],
-        comment="RAGAS faithfulness"
-    )
-
-    if scores["answer_relevancy"] is not None:
-     langfuse.score_current_trace(
-        name="answer_relevancy", 
-        value=scores["answer_relevancy"],
-        comment="RAGAS answer relevancy"
-    )
-
+    scores = {"faithfulness": None, "answer_relevancy": None}
+    if RAGAS_ENABLED:
+        scores = await asyncio.get_event_loop().run_in_executor(
+            None, evaluate_rag, question, answer, reranked_chunks
+        )
+        if scores["faithfulness"] is not None:
+            langfuse.score_current_trace(name="faithfulness", value=scores["faithfulness"], comment="RAGAS faithfulness")
+        if scores["answer_relevancy"] is not None:
+            langfuse.score_current_trace(name="answer_relevancy", value=scores["answer_relevancy"], comment="RAGAS answer relevancy")
 
     return {
         "session_id": session_id,
@@ -252,33 +245,23 @@ async def agent_ask(question: str, session_id: str = "default"):
     chunks = get_last_chunks()
     scores = {}
 
-    if chunks:
-        import asyncio
+    scores = {"faithfulness": None, "answer_relevancy": None}
+    if chunks and RAGAS_ENABLED:
         scores = await asyncio.get_event_loop().run_in_executor(
-         None, evaluate_rag, question, answer, chunks
+            None, evaluate_rag, question, answer, chunks
         )
-        print("AGENT SCORES:", scores)
-
         if scores["faithfulness"] is not None:
-            langfuse.score_current_trace(
-                name="faithfulness",
-                value=scores["faithfulness"],
-                comment="RAGAS faithfulness - agent"
-            )
+            langfuse.score_current_trace(name="faithfulness", value=scores["faithfulness"], comment="RAGAS faithfulness - agent")
         if scores["answer_relevancy"] is not None:
-            langfuse.score_current_trace(
-                name="answer_relevancy",
-                value=scores["answer_relevancy"],
-                comment="RAGAS answer relevancy - agent"
-            )
+            langfuse.score_current_trace(name="answer_relevancy", value=scores["answer_relevancy"], comment="RAGAS answer relevancy - agent")
 
     return {
         "question": question,
         "answer": answer,
         "chunks_used": len(chunks),
         "scores": {
-            "faithfulness": scores.get("faithfulness") if chunks else None,
-            "answer_relevancy": scores.get("answer_relevancy") if chunks else None
+            "faithfulness": scores.get("faithfulness"),
+            "answer_relevancy": scores.get("answer_relevancy")
         }
     }
 
