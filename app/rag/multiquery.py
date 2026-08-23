@@ -2,7 +2,7 @@
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_groq import  ChatGroq
 
-llm = ChatGroq(model="openai/gpt-oss-20b",temperature=0)
+llm = ChatGroq(model="openai-gpt-oss-20b",temperature=0)
 
 MULTI_QUERY_PROMPT = ChatPromptTemplate.from_template("""
 You are an AI assistant. Your task is to generate 3 different 

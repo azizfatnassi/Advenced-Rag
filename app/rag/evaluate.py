@@ -17,7 +17,7 @@ answer_relevancy = AnswerRelevancy(strictness=1)
 
 def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
     llm = LangchainLLMWrapper(ChatGroq(
-        model="openai/gpt-oss-20b",
+        model="openai-gpt-oss-20b",
         api_key=os.getenv("GROQ_API_KEY"),
         max_tokens=2000
     ))

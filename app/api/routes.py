@@ -50,7 +50,7 @@ def get_vectorstore():
 def generate_answer(question:str, chunks:list, chat_history: str ="")->str:
     context="\n\n".join([ c.page_content for c in chunks])
     # llm = OllamaLLM(model="mistral",base_url=OLLAMA_BASE_URL)
-    llm= ChatGroq(model="openai/gpt-oss-20b")
+    llm= ChatGroq(model="openai-gpt-oss-20b")
     prompt=ChatPromptTemplate.from_template(
         """""You are a helpful assistant. Use the context 
              and conversation history to answer"
