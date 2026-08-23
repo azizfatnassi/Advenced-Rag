@@ -2,7 +2,7 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 
-llm=ChatGroq(model="openai-gpt-oss-20b",temperature=0)
+llm=ChatGroq(model="openai/gpt-oss-20b",temperature=0)
 
 HYDE_PROMPT=ChatPromptTemplate.from_template(""" Write a short factual
        paragraph that would answer the question asked .
