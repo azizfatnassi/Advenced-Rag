@@ -10,15 +10,13 @@ from langchain_cohere import CohereEmbeddings
 from langchain_groq import ChatGroq
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_community.embeddings import SentenceTransformerEmbeddings
 import json
 
 VECTORSTORE_DIR = "./app/vectorstore"
 
 def get_vectorstore():
-    embedding_fn = CohereEmbeddings(
-        cohere_api_key=os.getenv("COHERE_API_KEY"),
-        model="embed-english-v3.0"
-    )
+    embedding_fn = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
     return Chroma(persist_directory=VECTORSTORE_DIR, embedding_function=embedding_fn)
 
 def generate_answer(question, chunks):

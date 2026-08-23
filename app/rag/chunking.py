@@ -49,10 +49,7 @@ def ingest_document(file_path: str , company: str = "unknown", year: str = "unkn
     print(f'Metadata added: company= {company},year={year}')
     print("Sample chunk metadata:", chunks[0].metadata)
 
-    embedding_fn = CohereEmbeddings(
-           cohere_api_key=os.getenv("COHERE_API_KEY"),
-           model="embed-english-v3.0"
-       )
+    embedding_fn = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
     vectorstore= Chroma(
         persist_directory=VECTORSTORE_DIR,
