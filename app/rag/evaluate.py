@@ -1,6 +1,7 @@
 import os
 import math
 from dotenv import load_dotenv
+from langchain_cohere import CohereEmbeddings
 from ragas import evaluate, EvaluationDataset, SingleTurnSample
 from ragas.metrics import faithfulness, AnswerRelevancy
 from ragas.llms import LangchainLLMWrapper
@@ -16,11 +17,14 @@ answer_relevancy = AnswerRelevancy(strictness=1)
 
 def evaluate_rag(question: str, answer: str, contexts: list) -> dict:
     llm = LangchainLLMWrapper(ChatGroq(
-        model="llama-3.1-8b-instant",
+        model="openai/gpt-oss-20b",
         api_key=os.getenv("GROQ_API_KEY"),
         max_tokens=2000
     ))
-    embeddings = LangchainEmbeddingsWrapper(SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2"))
+    embeddings = LangchainEmbeddingsWrapper( CohereEmbeddings(
+                  cohere_api_key=os.getenv("COHERE_API_KEY"),
+                  model="embed-english-v3.0"
+              ))
 
     samples = [
         SingleTurnSample(
