@@ -55,7 +55,7 @@ class FinancialMetrics(BaseModel):
 def extract_financial_data(context:str)->FinancialMetrics:
 
     result=client.chat.completions.create(
-        model="qwen/qwen3.6-27b",
+        model="openai/gpt-oss-20b",
         response_model=FinancialMetrics,
         max_retries=2,
         messages=[
